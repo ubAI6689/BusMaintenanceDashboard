@@ -27,7 +27,7 @@ This project is a Bus Maintenance Dashboard built using Django, integrated with 
 ### Build Docker Images
 Run the following command to build the Docker image for the Django app:
 ```bash
-docker build -t Rapid_Bus_Maintenance_App .
+docker build -t rapid_bus_maintenance_app .
 ```
 
 ### Run Containers
