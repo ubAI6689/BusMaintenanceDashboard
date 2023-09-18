@@ -80,27 +80,30 @@ WSGI_APPLICATION = 'BusMaintenanceDashboard.wsgi.application'
 
 # settings.py
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'postgres',
-#         'USER': 'postgres',
-#         'PASSWORD': 'postgres',
-#         'HOST': 'postgres_container',  # This should match the name of your Postgres Docker container
-#         'PORT': 5432,  # Default Postgres port
-#     }
-# }
+# settings.py
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': os.environ.get('DJANGO_DB_HOST'),
-        'PORT': os.environ.get('DJANGO_DB_PORT'),
-        'NAME': os.environ.get('DJANGO_DB_NAME'),
-        'USER': os.environ.get('DJANGO_DB_USER'),
-        'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD'),
+        'NAME': 'bus_maintenance',
+        'USER': 'abu',
+        'PASSWORD': '1234',
+        'HOST': 'postgres_container',  # This should match the name of your Postgres Docker container
+        'PORT': 5432,  # Default Postgres port
     }
 }
+
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'HOST': os.environ.get('DJANGO_DB_HOST'),
+#         'PORT': os.environ.get('DJANGO_DB_PORT'),
+#         'NAME': os.environ.get('DJANGO_DB_NAME'),
+#         'USER': os.environ.get('DJANGO_DB_USER'),
+#         'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD'),
+#     }
+# }
 
 
 

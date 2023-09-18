@@ -10,9 +10,9 @@ services:
     environment:
       - DEBUG=1  # Set to 0 in production
       - DJANGO_DB_HOST=postgres_container
-      - DJANGO_DB_NAME=postgres  # Changed to match PostgreSQL database name
-      - DJANGO_DB_USER=postgres  # Changed to match PostgreSQL username
-      - DJANGO_DB_PASSWORD=postgres  # Changed to match PostgreSQL password
+      - DJANGO_DB_NAME=bus_maintenance  # Changed to match PostgreSQL database name
+      - DJANGO_DB_USER=abu  # Changed to match PostgreSQL username
+      - DJANGO_DB_PASSWORD=1234  # Changed to match PostgreSQL password
       - DJANGO_DB_PORT=5432
   
   postgres_container:
@@ -25,9 +25,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=bus_maintenance
+      - POSTGRES_USER=abu
+      - POSTGRES_PASSWORD=1234
+    ports:
+      - "5432:5432"
 
   pgadmin:
     image: dpage/pgadmin4
