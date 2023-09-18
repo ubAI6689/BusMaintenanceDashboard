@@ -84,13 +84,12 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'bus_maintenance',
-        'USER': 'abu',
-        'PASSWORD': '1234',
-        'HOST': 'localhost',
-        'PORT': '',
+        'USER': 'admin',
+        'PASSWORD': '123456',
+        'HOST': 'postgres_container',  # This should match the name of your Postgres Docker container
+        'PORT': '5432',  # Default Postgres port
     }
 }
-
 
 
 # Password validation
