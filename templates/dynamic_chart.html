@@ -1,0 +1,141 @@
+{% extends 'dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<h1>Dynamic Chart</h1>
+
+<div class="form-group" style="width: 25%;">
+    <label for="vehicleIDSelector">Select Vehicle ID:</label>
+    <select class="form-control" id="vehicleIDSelector"></select>
+</div>
+
+<div class="form-group" style="width: 50%;">
+    <label for="paramSelector">Select Parameters:</label>
+    <select class="form-control" id="paramSelector"></select>
+</div>
+
+<!-- Add this button -->
+<button id="generatePlotBtn" class="btn btn-primary">Generate Plot</button>
+
+<div id="loadingSpinner" class="spinner-border text-primary" role="status" style="display:none;">
+    <span class="sr-only">Loading...</span>
+</div>
+  
+<canvas id="dynamicChart" style="height: 90vh;"></canvas>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+
+    let spnVerboseMapping = {
+        "SPN_1088":" Service Brake Circuit 2 Air Pressure",
+        "SPN_1087":" Service Brake Circuit 1 Air Pressure",
+        "SPN_110":" Engine Coolant Temperature" ,
+        "SPN_171":" Ambient Air Temperature" ,
+        "SPN_1821":" Position of doors ",
+        "SPN_183":" Engine Fuel Rate",
+        "SPN_184":" Engine Instantaneous Fuel Economy",
+        "SPN_190":" Engine Speed",
+        "SPN_237":" Vehicle Identification Number",
+        "SPN_247":" Engine Total Hours of Operation" ,
+        "SPN_250":" Engine Total Fuel Used",
+        "SPN_2806":" FMS-standard SW-version supported.",
+        "SPN_513":" Actual Engine - Percent Torque",
+        "SPN_523":" Transmission Current Gear",
+        "SPN_524":" Transmission Selected Gear",
+        "SPN_595":" Cruise Control Active",
+        "SPN_597":" Brake Switch",
+        "SPN_84":" Wheel-Based Vehicle Speed",
+        "SPN_91":" Accelerator Pedal Position 1",
+        "SPN_917":" High Resolution Total Vehicle Distance",
+        "SPN_92":" Engine Percent Load At Current Speed",
+        "SPN_96":" Fuel Level 1",
+        "SPN_964":" Represent Time / Date",
+      }
+
+    // Initialize the chart
+    let dynamicChart;
+
+    // Initialize chart
+    function initChart() {
+        if (dynamicChart) {
+            dynamicChart.destroy();
+        }
+        let ctx = document.getElementById('dynamicChart').getContext('2d');
+        dynamicChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: '',  // Empty initially
+                    data: [],
+                    fill: false
+                }]
+            }
+        });
+    }
+
+    function loadData() {
+        const vehicleID = $("#vehicleIDSelector").val();
+        const param = $("#paramSelector").val();  // Just one param
+
+        console.log("Debug - Sending request, Vehicle ID:", vehicleID, "Param:", param);  // Debug log
+
+        $("#loadingSpinner").show();  // Show spinner
+
+        console.log("Debug - Sending AJAX request");
+
+        $.get(`/get_dynamic_data/?vehicle_id=${vehicleID}&param=${param}`)
+            .done(function(response) {
+                console.log("Debug - Received data:", response);  // Debug log
+
+                dynamicChart.data.labels = response.datetime_data;
+                dynamicChart.data.datasets[0].data = response.param_data;
+                dynamicChart.data.datasets[0].label = param;
+                dynamicChart.update();
+            })
+            .fail(function() {
+                alert("Error loading data");
+            })
+            .always(function() {
+                $("#loadingSpinner").hide();  // Hide spinner
+            });
+    }
+
+    
+    // Fetch SPN fields and populate the dropdown
+    function populateSPNFields() {
+        $.get("/get_all_spn_fields/").done(function(response) {
+            const $paramSelector = $("#paramSelector");
+            response.spn_fields.forEach(function(field) {
+                let verboseDescription = spnVerboseMapping[field] || field;
+                let dropdownText = `${field} - ${verboseDescription}`;
+                $paramSelector.append(new Option(dropdownText, field));
+            });
+        });
+    }
+
+
+    // Populate the parameters dropdown selection
+    $(document).ready(function() {
+        populateSPNFields();
+    });
+
+    // Generate plot when the button is pushed
+    $('#generatePlotBtn').click(function() {
+        loadData();
+    });
+
+    // Populate Vehicle ID dropdown
+    $.get("/get_all_vehicle_ids/", function(response) {
+        let options = response.vehicle_ids.map(function(id) {
+            return `<option value="${id}">${id}</option>`;
+        }).join("");
+        $("#vehicleIDSelector").html(options);
+    });
+
+    // Load initial data
+    initChart();
+</script>
+{% endblock %}

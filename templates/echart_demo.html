@@ -1,0 +1,48 @@
+{% extends 'dashboard.html' %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@latest/dist/echarts.min.js"></script>
+<div id="main" style="width: 400px;height:200px;"></div>
+<script>
+    var myChart = echarts.init(document.getElementById('main'));
+    var option = {
+        title: {
+            text: 'ECharts Demo Line Chart'
+        },
+        tooltip: {
+            trigger: 'axis'
+        },
+        legend: {
+            data:['Sales']
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        toolbox: {
+            feature: {
+                saveAsImage: {}
+            }
+        },
+        xAxis: {
+            type: 'category',
+            boundaryGap: false,
+            data: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+        },
+        yAxis: {
+            type: 'value'
+        },
+        series: [
+            {
+                name:'Sales',
+                type:'line',
+                stack: 'Total',
+                data:[120, 132, 101, 134, 90, 230, 210]
+            }
+        ]
+    };
+    myChart.setOption(option);
+</script>
+{% endblock %}

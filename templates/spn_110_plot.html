@@ -1,0 +1,75 @@
+{% extends 'dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<h1>Plot SPN_110</h1>
+
+<div class="form-group" style="width: 25%;">
+    <label for="vehicleIDSelector">Select Vehicle ID:</label>
+    <select class="form-control" id="vehicleIDSelector">
+    </select>
+</div>
+
+<div id="loadingSpinner" class="spinner-border text-primary" role="status" style="display:none;">
+    <span class="sr-only">Loading...</span>
+</div>
+  
+<canvas id="spn110Chart" style="height: 90vh;"></canvas>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Initialize the chart
+    let ctx = document.getElementById('spn110Chart').getContext('2d');
+    let spn110Chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'SPN_110',
+                data: [],
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+    });
+
+    function loadData(vehicleID) {
+        $("#loadingSpinner").show();  // Show spinner
+        $.get(`/get_spn_110_data/?vehicle_id=${vehicleID}`)
+        .done(function(response) {
+            console.log("Debug: Received data:", response);  // Debug log
+            spn110Chart.data.labels = response.evt_datetime_data;
+            spn110Chart.data.datasets[0].data = response.spn_110_data;
+            spn110Chart.update();
+        })
+        .fail(function() {
+            alert("Error loading data");
+        })
+        .always(function() {
+            $("#loadingSpinner").hide();  // Hide spinner
+        });
+    }
+    
+
+    // Populate Vehicle ID dropdown
+    $.get("/get_all_vehicle_ids/", function(response) {
+        let options = response.vehicle_ids.map(function(id) {
+            return `<option value="${id}">${id}</option>`;
+        }).join("");
+        $("#vehicleIDSelector").html(options);
+    });
+
+    // Listen for changes on the dropdown
+    $('#vehicleIDSelector').change(function() {
+        console.log("Dropdown changed");  // Debug log
+        let selectedVehicleID = $(this).val();
+        console.log("Debug - Selected Vehicle ID: ", selectedVehicleID);  // Debug log
+        loadData(selectedVehicleID);
+    });
+
+    // Load initial data
+    loadData();
+</script>
+{% endblock %}

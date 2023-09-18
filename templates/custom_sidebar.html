@@ -1,0 +1,66 @@
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Brand Logo -->
+    <a href="#" class="brand-link">
+      <span class="brand-text font-weight-light">RapidKL Bus Management</span>
+    </a>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <!-- Sidebar Menu -->
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column">
+          <li class="nav-item">
+            <a href="{% url 'dashboard' %}" class="nav-link">
+              <i class="nav-icon fas fa-tachometer-alt"></i>
+              <p>
+                Dashboard
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'buses' %}" class="nav-link">
+              <i class="nav-icon fas fa-bus"></i>
+              <p>
+                Buses
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'canbus_data' %}" class="nav-link">
+              <i class="nav-icon fas fa-chart-area"></i>
+              <p>
+                CANBUS Data
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'echart_demo' %}" class="nav-link">
+              <i class="nav-icon fas fa-chart-area"></i>
+              <p>
+                Apache echarts Demo
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'spn_110_plot' %}" class="nav-link">
+              <i class="nav-icon fas fa-chart-area"></i>
+              <p>
+                Plot SPN_110
+              </p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'plot_dynamic_data' %}" class="nav-link">
+              <i class="nav-icon fas fa-chart-area"></i>
+              <p>
+                Plot Dynamically
+              </p>
+            </a>
+          </li>
+          <!-- Add more items here -->
+        </ul>
+      </nav>
+      <!-- /.sidebar-menu -->
+    </div>
+    <!-- /.sidebar -->
+</aside>
