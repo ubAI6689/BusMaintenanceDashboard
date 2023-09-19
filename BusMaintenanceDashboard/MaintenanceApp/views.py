@@ -1,17 +1,22 @@
 import csv
 import json
+import numpy as np
+import datetime
+import pytz
+utc=pytz.UTC
+import pandas as pd
 from django.http import JsonResponse
 from django.apps import apps
 from django.shortcuts import render
 from django.core import serializers
 from django.db.models import F
-from .models import DST_CANPERIODHIST
+from .models import DST_CANPERIODHIST, FORECAST, PROCESSED
 
 def dashboard_view(request):
     return render(request, 'dashboard.html')
 
 def buses_view(request):
-    return render(request, 'buses.html')
+    return render(request, 'bus_list.html')
 
 def canbus_data_view(request):
     return render(request, 'canbus_data.html')
@@ -95,7 +100,66 @@ def get_dynamic_data(request):
     print(response_data)  # Backend log
     return JsonResponse(response_data)
 
+def plot_forecast(request):
+    return render(request, 'plot_forecast.html')
+
+def get_forecast_and_processed_data(request):
+    vehicle_id = request.GET.get('vehicle_id', None)
+    param = request.GET.get('param', None)
+
+    print(f"Get request - vehicle ID: {vehicle_id}, param: {param}")
+
+    if not vehicle_id or not param:
+        return JsonResponse({'error': 'Invalid parameters'}, status=400)
+
+    # Query from PROCESSED model
+    queryset_processed = PROCESSED.objects.filter(VEH_ID=vehicle_id).values('EVT_DATETIME', param)
+    dtp = [entry['EVT_DATETIME'] for entry in queryset_processed]
+    pp = [entry[param] for entry in queryset_processed]
+
+    # Query from FORECAST model
+    queryset_forecast = FORECAST.objects.filter(VEH_ID=vehicle_id).values('forecast_dt', f"{param}_fc")
+    dtf = [entry['forecast_dt'] for entry in queryset_forecast]
+    pf = [entry[f"{param}_fc"] for entry in queryset_forecast]
+
+    start_dt = pd.to_datetime('2023-04-30 10:00').tz_localize('UTC')
+    current_dt = pd.to_datetime('2023-04-30 14:00').tz_localize('UTC')
+    end_dt = pd.to_datetime('2023-04-30 20:00').tz_localize('UTC')
+    dfp = pd.DataFrame({'datetime':dtp, 'pp':pp}).sort_values('datetime')
+    dff = pd.DataFrame({'datetime':dtf, 'pf':pf}).sort_values('datetime')
+    df = pd.merge(dfp,dff,on='datetime').sort_values('datetime')
+    df = df[ (df['datetime']>=start_dt) & (df['datetime']<end_dt)].fillna('nan')
+    
+    df.loc[df['datetime'] >= current_dt, 'pp'] = 'nan'
 
 
+    print(df[df['datetime']>=current_dt]['pp'].unique())
+    # df[df['datetime']>=current_dt]['pp'] = 'nan'
 
+    pp = df['pp'].tolist()
+    pf = df['pf'].tolist()
+    dt = df['datetime'].tolist()
+    dt = [x.strftime('%Y-%m-%d %H:%M:%S') for x in dt]
+
+    print(dt[:10], len(dt))
+    print(pp[:10], len(pp))
+    print(pf[:10], len(pf))
+    
+    response_data = {
+        'param_data_processed': pp,
+        # 'datetime_data_processed': dtp,
+        'param_data_forecast': pf,
+        'datetime_data_forecast': dt,
+    }
+    
+    return JsonResponse(response_data)
+
+
+def get_all_vehicle_ids_forecast(request):
+    vehicle_ids = FORECAST.objects.values_list('VEH_ID', flat=True).distinct()
+    return JsonResponse({"vehicle_ids": list(vehicle_ids)})
+
+def bus_info(request):
+    bus_data = FORECAST.objects.values_list('VEH_ID', flat=True).distinct()
+    return render(request, 'bus_info.html', {'buses': bus_data})
 

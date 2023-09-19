@@ -14,4 +14,8 @@ urlpatterns = [
     path('get_all_spn_fields/', views.get_all_spn_fields, name='get_all_spn_fields'),
     path('plot_dynamic_data/', views.plot_dynamic_data, name='plot_dynamic_data'),
     path('get_dynamic_data/', views.get_dynamic_data, name='get_dynamic_data'),
+    path('plot_forecast/', views.plot_forecast, name='plot_forecast'),
+    path('get_forecast_and_processed_data/', views.get_forecast_and_processed_data, name='get_forecast_and_processed_data'),
+    path('get_all_vehicle_ids_forecast/', views.get_all_vehicle_ids_forecast, name='get_all_vehicle_ids_forecast'),
+    path('bus_info/', views.bus_info, name='bus_info'),
 ]

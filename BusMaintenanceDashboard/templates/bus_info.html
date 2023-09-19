@@ -1,0 +1,27 @@
+{% extends 'dashboard.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><font style="font-weight: bold;">VAE 7466 | <font style="color:red">WARNING</font> </h3></font></br>
+            <small>2023-04-30 14:00 | [VIEW FORECAST]</small>
+        </div>
+        <div class="card-body"> 
+            <p>ENGINE COOLANT TEMPERATURE SHOW INCREASING TREND. POSSIBLE FAILURE MAY OCCUR.</p>
+            <!-- <p>Other Information: {{ bus.other_info }}</p> -->
+        </div>
+    </div>
+    {% for bus in buses %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><font style="font-weight: bold;">{{ bus }} | <font style="color:lightgreen">GOOD</font> </h3></font></br>
+                <small>2023-04-30 14:00 | [VIEW FORECAST] </small>
+            </div>
+            <div class="card-body"> 
+                <p>NO ANOMALY DETECTED. FORECAST SHOWS NORMAL OPERATIONS. DOWNTIME UNLIKELY</p>
+                <!-- <p>Other Information: {{ bus.other_info }}</p> -->
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}

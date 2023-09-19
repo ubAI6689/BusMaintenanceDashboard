@@ -88,7 +88,7 @@ DATABASES = {
         'NAME': 'bus_maintenance',
         'USER': 'abu',
         'PASSWORD': '1234',
-        'HOST': 'postgres_container',  # This should match the name of your Postgres Docker container
+        'HOST': 'localhost',  # This should match the name of your Postgres Docker container
         'PORT': 5432,  # Default Postgres port
     }
 }

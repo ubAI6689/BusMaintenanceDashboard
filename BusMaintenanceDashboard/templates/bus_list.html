@@ -1,0 +1,16 @@
+{% extends 'dashboard.html' %}
+{% load static %}
+
+{% block content %}
+    {% for bus in buses %}
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">{{ bus.name }}</h3>
+            </div>
+            <div class="card-body">
+                <p>Status: {{ bus.status }}</p>
+                <p>Other Information: {{ bus.other_info }}</p>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}

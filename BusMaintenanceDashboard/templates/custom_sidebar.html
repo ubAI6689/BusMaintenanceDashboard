@@ -9,23 +9,23 @@
       <!-- Sidebar Menu -->
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column">
-          <li class="nav-item">
+          <!-- <li class="nav-item">
             <a href="{% url 'dashboard' %}" class="nav-link">
               <i class="nav-icon fas fa-tachometer-alt"></i>
               <p>
                 Dashboard
               </p>
             </a>
-          </li>
+          </li> -->
           <li class="nav-item">
-            <a href="{% url 'buses' %}" class="nav-link">
+            <a href="{% url 'bus_info' %}" class="nav-link">
               <i class="nav-icon fas fa-bus"></i>
               <p>
                 Buses
               </p>
             </a>
           </li>
-          <li class="nav-item">
+          <!-- <li class="nav-item">
             <a href="{% url 'canbus_data' %}" class="nav-link">
               <i class="nav-icon fas fa-chart-area"></i>
               <p>
@@ -54,6 +54,14 @@
               <i class="nav-icon fas fa-chart-area"></i>
               <p>
                 Plot Dynamically
+              </p>
+            </a>
+          </li> -->
+          <li class="nav-item">
+            <a href="{% url 'plot_forecast' %}" class="nav-link">
+              <i class="nav-icon fas fa-chart-area"></i>
+              <p>
+                Plot Forecast
               </p>
             </a>
           </li>
