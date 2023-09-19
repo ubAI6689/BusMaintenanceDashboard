@@ -33,9 +33,10 @@ This is a Django-based Bus Maintenance Dashboard. This README provides steps to 
 
 ## Build & Run
 
-1. **Clone the Repository**
+1. **Clone the Repository (Note that we are using a branch repo)**
    ```
-   git clone https://github.com/ubAI6689/BusMaintenanceDashboard.git
+   git clone -b Submission https://github.com/ubAI6689/BusMaintenanceDashboard.git 
+
    ```
 
 2. **Navigate to Project Directory**
