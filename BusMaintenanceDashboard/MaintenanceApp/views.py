@@ -9,8 +9,17 @@ from django.http import JsonResponse
 from django.apps import apps
 from django.shortcuts import render
 from django.core import serializers
-from django.db.models import F
-from .models import DST_CANPERIODHIST, FORECAST, PROCESSED
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.core.cache import cache
+from django.db.models import F, Q
+from .models import DST_CANPERIODHIST, FORECAST, PROCESSED, ParameterThreshold
+
+def get_threshold_data(request):
+    thresholds = {}
+    for param in ParameterThreshold.objects.all():
+        thresholds[param.parameter_name] = [param.min_value, param.max_value]
+    return JsonResponse({'thresholds': thresholds})
 
 def dashboard_view(request):
     return render(request, 'dashboard.html')
@@ -154,12 +163,57 @@ def get_forecast_and_processed_data(request):
     
     return JsonResponse(response_data)
 
-
 def get_all_vehicle_ids_forecast(request):
     vehicle_ids = FORECAST.objects.values_list('VEH_ID', flat=True).distinct()
     return JsonResponse({"vehicle_ids": list(vehicle_ids)})
 
 def bus_info(request):
+    print("bus_info view was called")  # Debug line
     bus_data = FORECAST.objects.values_list('VEH_ID', flat=True).distinct()
     return render(request, 'bus_info.html', {'buses': bus_data})
 
+def alarm_info_view(request):
+    # Try to get data from the cache first
+    alarming_buses = cache.get('alarming_buses')
+    
+    if alarming_buses is None:
+        all_vehicle_ids = ['VAE7038', 'VAG8541', 'VH4236']
+        
+        # Filtering only the specific parameters we're interested in
+        specific_params = [
+            'SPN_110', 'SPN_183', 'SPN_184', 
+            'SPN_84', 'SPN_190', 'SPN_96', 'SPN_91'
+        ]
+        
+        alarming_buses = []
+        
+        thresholds = {
+            param.parameter_name: [param.min_value, param.max_value]
+            for param in ParameterThreshold.objects.filter(parameter_name__in=specific_params)
+        }
+
+        for vehicle_id in all_vehicle_ids:
+            processed_data = PROCESSED.objects.filter(VEH_ID=vehicle_id).latest('EVT_DATETIME')
+            
+            for param, (min_val, max_val) in thresholds.items():
+                param_value = getattr(processed_data, param, None)
+                
+                if param_value is not None and param_value >= max_val:
+                    print(f"Debug - Adding alarming bus: {vehicle_id}, {param}, {param_value}, {max_val}")
+                    alarming_buses.append({
+                        'vehicle_id': vehicle_id,
+                        'parameter': param,
+                        'value': param_value,
+                        'threshold': max_val
+                    })
+        
+        # Store the result in cache for 10 minutes
+        cache.set('alarming_buses', alarming_buses, 600)
+        # cache.delete('alarming_buses')
+
+    context = {'alarming_buses': alarming_buses}
+    return render(request, 'bus_info.html', context)
+
+@receiver(post_save, sender=ParameterThreshold)
+def clear_cache(sender, **kwargs):
+    cache.clear()

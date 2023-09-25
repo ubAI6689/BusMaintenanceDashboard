@@ -71,9 +71,6 @@
         {% block nav_footer %}
             {% include 'adminlte/lib/_main_footer.html' %}
         {% endblock %}
-
-
-
     </div>
 {% endblock body %}
 
@@ -84,6 +81,14 @@
 
 {% block extra_js %}{% endblock %}
 
-{% block extra_foot %}{% endblock %}
+{% block extra_foot %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const notificationIcons = document.querySelectorAll('.navbar .dropdown.notifications-menu, .navbar .dropdown.messages-menu');
+    notificationIcons.forEach(el => el.style.display = 'none');
+  });
+</script>
+{% endblock %}
 </body>
 </html>
+  

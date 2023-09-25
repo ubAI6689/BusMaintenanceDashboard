@@ -26,6 +26,8 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
+
 <script>
 
     let spnVerboseMapping = {
@@ -54,94 +56,115 @@
         "SPN_964":" Represent Time / Date",
       }
 
+    // Initialize the chart
+    let dynamicChart;
 
-      // Initialize the chart
-let dynamicChart;
-
-// Initialize chart with single dataset
-function initChart() {
-    if (dynamicChart) {
-        dynamicChart.destroy();
+    function initChart() {
+        if (dynamicChart) {
+            dynamicChart.destroy();
+        }
+    
+        let ctx = document.getElementById('dynamicChart').getContext('2d');
+    
+        const config = {
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Processed Param',
+                        data: [],
+                        type: 'line',
+                        backgroundColor: 'black',
+                        borderColor: 'black',
+                        fill: false,
+                        spanGaps: true,
+                    },
+                    {
+                        label: 'Forecasted Param',
+                        data: [],
+                        type: 'line',
+                        backgroundColor: 'blue',
+                        borderColor: 'blue',
+                        fill: false,
+                        spanGaps: true,
+                    },
+                    {
+                        label: 'Threshold',
+                        data: [],  // Data for the threshold line, filled later
+                        type: 'line',
+                        backgroundColor: 'red',
+                        borderColor: 'red',
+                        fill: false,
+                        spanGaps: true,
+                    },
+                ],
+            },
+            options: {
+                elements: {
+                    line: {
+                        borderWidth: 1,
+                    },
+                    point: {
+                        radius: 0.5,
+                    },
+                },
+                legend: {
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 12,
+                    },
+                },
+            },
+        };
+    
+        dynamicChart = new Chart(ctx, config);
     }
-    let ctx = document.getElementById('dynamicChart').getContext('2d');
-    dynamicChart = new Chart(ctx, {
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Processed Param',
-                type: 'line',
-                data: []
-            }, {
-                label: 'Forecasted Param',
-                type: 'line',
-                data: [],
-                pointRadius: 0,
-            }],
-        },
-        annotation: {
-          annotations: [{
-            type: 'line',
-            mode: 'horizontal',
-            scaleID: 'y-axis-0',
-            value: 85,
-            borderColor: 'rgb(75, 192, 192)',
-            borderWidth: 4,
-            label: {
-            enabled: false,
-            content: 'Test label'
-            }
-            }]
+    
+
+    function loadData() {
+        const vehicleID = $("#vehicleIDSelector").val();
+        const param = $("#paramSelector").val();
+
+        if (!vehicleID || !param) {
+            console.log("Debug - Either vehicleID or param is empty. Not proceeding.");
+            return;
         }
 
-        // options: options
-    });
-    // dynamicChart = new Chart(ctx, {
-    //     type: 'line',
-    //     data: {
-    //         labels: [],
-    //         datasets: [{
-    //             label: '',  // Empty initially
-    //             data: [],
-    //             fill: false
-    //         }]
-    //     }
-    // });
-}
+        console.log("Debug - Sending request, Vehicle ID:", vehicleID, "Param:", param);
+        $("#loadingSpinner").show();
 
-function loadData() {
-    const vehicleID = $("#vehicleIDSelector").val();
-    const param = $("#paramSelector").val();  // Just one param
+        $.get(`/get_forecast_and_processed_data/?vehicle_id=${vehicleID}&param=${param}`)
+            .done(function(response) {
+                console.log("Debug - Received data:", response);
+                dynamicChart.data.labels = response.datetime_data_forecast || [];
+                dynamicChart.data.datasets[0].data = response.param_data_processed || [];
+                dynamicChart.data.datasets[1].data = response.param_data_forecast || [];
+                dynamicChart.data.datasets[0].label = param;
+                dynamicChart.data.datasets[1].label = "Forecasted " + param;
 
-    console.log("Debug - Sending request, Vehicle ID:", vehicleID, "Param:", param);
-    $("#loadingSpinner").show();  // Show spinner
+                // Fetch the max threshold value for this parameter from your server
+                $.get(`/get_threshold_data/?param=${param}`)
+                    .done(function(thresholdData) {
+                        const maxThreshold = thresholdData.thresholds[param][1];
+                        console.log(`Debug - Max Threshold for ${param}: ${maxThreshold}`);
 
-    $.get(`/get_forecast_and_processed_data/?vehicle_id=${vehicleID}&param=${param}`)
-        .done(function(response) {
-            console.log("Debug - Received data:", response);
-            dynamicChart.title = param;
-            dynamicChart.data.labels = response.datetime_data_forecast || [];  // or datetime_data_forecast based on which one you're plotting
-            dynamicChart.data.datasets[0].data = response.param_data_processed || [];
-            dynamicChart.data.datasets[1].data = response.param_data_forecast || [];
-            dynamicChart.data.datasets[0].label = param;
-            dynamicChart.data.datasets[1].label = "Forecasted "+ param;
-            dynamicChart.update();
-        })
-        .fail(function() {
-            alert("Error loading data");
-        })
-        .always(function() {
-            $("#loadingSpinner").hide();  // Hide spinner
-        });
-}
+                        dynamicChart.data.datasets[2].data = Array(response.datetime_data_forecast.length).fill(maxThreshold);
+                        dynamicChart.data.datasets[2].label = "Max Threshold";
+                        dynamicChart.update();
+                    });
+            })
+            .fail(function() {
+                alert("Error loading data");
+            })
+            .always(function() {
+                $("#loadingSpinner").hide();
+            });
+    }   
 
-    
-
-
-    
+      
     function populateSPNFields() {
         const hardcodedSPNs = ['SPN_110', 'SPN_183', 'SPN_184', 'SPN_84', 'SPN_190', 'SPN_96', 'SPN_91'];
         const $paramSelector = $("#paramSelector");
-    
         hardcodedSPNs.forEach(function(field) {
             let verboseDescription = spnVerboseMapping[field] || field;
             let dropdownText = `${field} - ${verboseDescription}`;
@@ -149,23 +172,54 @@ function loadData() {
         });
     }
     
+    function getURLParam(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+
+    let defaultVehicleID = getURLParam("veh_id");
+    let defaultParam = getURLParam("param");
+
+    if (defaultVehicleID && defaultParam) {
+        $("#vehicleIDSelector").val(defaultVehicleID);
+        $("#paramSelector").val(defaultParam);
+    }
+
+
+    function initializePage() {
+        populateSPNFields();
+
+        const veh_id = getURLParam('veh_id');
+        const param = getURLParam('param');
+
+        if (veh_id && param) {
+            $("#vehicleIDSelector").val(veh_id);
+            $("#paramSelector").val(param);
+            loadData();  // Only auto-load if URL params are present.
+        }
+    }
+
+    $(document).ready(initializePage);
 
     // Populate the parameters dropdown selection
     $(document).ready(function() {
         populateSPNFields();
-    });
 
+        if (defaultVehicleID && defaultParam) {
+            loadData();  // Automatically load data if URL params exist
+        }
+    });
     // Generate plot when the button is pushed
     $('#generatePlotBtn').click(function() {
         loadData();
     });
-
     // Populate Vehicle ID dropdown
     $.get("/get_all_vehicle_ids_forecast/", function(response) {
         let options = response.vehicle_ids.map(function(id) {
             return `<option value="${id}">${id}</option>`;
         }).join("");
         $("#vehicleIDSelector").html(options);
+        loadData();  // Trigger data load after populating dropdown
     });
 
     // Load initial data

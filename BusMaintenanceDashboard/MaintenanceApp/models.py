@@ -1,4 +1,7 @@
 from django.db import models
+from django.core.cache import cache
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # Create your models here.
 class DST_CANPERIODHIST(models.Model):
@@ -90,6 +93,18 @@ class FORECAST(models.Model):
     SPN_91_fc = models.FloatField()
     SPN_91_fc_lower = models.FloatField()
     SPN_91_fc_upper = models.FloatField()
+
+class ParameterThreshold(models.Model):
+    parameter_name = models.CharField(max_length=50, unique=True)
+    min_value = models.FloatField()
+    max_value = models.FloatField()
+
+    def __str__(self):
+        return f"{self.parameter_name} - [{self.min_value}, {self.max_value}]"
+
+@receiver(post_save, sender=PROCESSED)
+def invalidate_cache(sender, **kwargs):
+    cache.delete('alarming_buses')
 
 # class DST_CANPERIODHIST(models.Model):
 #     APPLY_DT = models.CharField(max_length=255)
